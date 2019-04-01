@@ -32,8 +32,8 @@ int main()
 
 	cout << "Number of Elements: " << numStudents << endl;
 
-	int idealSize = (2 * numStudents); //ensure there is enough room in the hashTable
-	int tableSize = next_pr(26);	   //ensure size is a prime number, useful for hashing
+	int idealSize = (3 * numStudents); //ensure there is enough room in the hashTable
+	int tableSize = next_pr(idealSize);	   //ensure size is a prime number, useful for hashing
 
 	cout << "table size: " << tableSize << endl
 		 << endl;
@@ -45,16 +45,19 @@ int main()
 	//retrive next key, and send it to the hash function to calculate an index
 	while (getline(in, line))
 	{
-		//cout << line << endl;
+		cout << line << endl;
 		int key = hashFunc1(line, tableSize);
 		
 		//check for collisions
-		if(hashTable[key] == ""){
-			//insert into table if no collision
+		if(hashTable[key] == ""){//insert into table if no collision
+			
 			hashTable[key] = line;
 		}else{
 			//there is a collision
 			//we must probe
+			cout << "Collision Detected! PROBING.." << endl;
+			probe(hashTable, tableSize, key, line);
+
 		}
 		
 	}
@@ -62,6 +65,7 @@ int main()
 	printHashTable(hashTable, tableSize);
 
 	in.close();
+	delete[] hashTable;
 
 	return 0;
 }
@@ -86,7 +90,7 @@ int hashFunc1(string name, int tableSize)
 	}
 
 	key = sum % tableSize;
-	//cout << "Indexing key: " << key << endl << endl;
+	cout << "Indexing key: " << key << endl << endl;
 
 	return key;
 }
@@ -144,7 +148,7 @@ bool probe(string hashTable[], int tableSize, int key, string line){
 	int i = 1;
 	int index = key;
 
-	while(!inserted){
+	while(inserted == false){
 
 		if(hashTable[index] != ""){ //there is a collision
 			index = (index + i^2) % tableSize;
@@ -152,6 +156,9 @@ bool probe(string hashTable[], int tableSize, int key, string line){
 		else{ //there was no collision, we can now insert into index
 			inserted = true;
 			hashTable[index] = line;
+			cout << line << endl;
+			cout << "New Indexing key: " << index << endl << endl;
+
 			break;
 		}
 
