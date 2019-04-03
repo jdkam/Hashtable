@@ -1,13 +1,26 @@
+/*
+HashFunction.cpp
+
+Purpose: Reads in a set of keys, and uses the hash function to generate an index to insert students into the hash table
+Invariants: Indexing keys are the names of the students, does not count spaces or return carriages as characters for calculating hash index
+
+Author: Jordan Kam
+Date: April 2, 2019
+*/
+
+
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <istream>
 #include <math.h>
+#include <iomanip>
+#include <time.h>
 
 using namespace std;
 
 unsigned int hashFunc1(const string &name, int tableSize);
-unsigned int hashFunc2(const string &name, int tableSize);
+unsigned int hashFunc2(const string &name, int tableSize, int r);
 
 int is_prime(int num);
 int next_pr(int num);
@@ -42,34 +55,47 @@ int main()
 	int tableSize = next_pr(idealSize); //ensure size is a prime number, useful for hashing
 
 	cout << "table size: " << tableSize << endl
-		 << endl;
+		<< endl;
 
 	//create hash table array
-	//instead of creating a hashtable of objects, we will create a hashtable of strings to illustrate the functionality of our hashing
+	//instead of creating a hashtable of objects, we will create a hashtable of strings to illustrate the functionality of my hashing
 	string *hashTable = new string[tableSize];
 	int numCollisions = 0;
 
 	int *frequencyTable = new int[tableSize];
-
+	srand(time(NULL));
 	while (getline(in, line)) //retrive next key, and send it to the hash function to calculate an index
 	{
 		cout << line << endl;
 
+
+		
+		int randomNum = rand() % 100 + 1;
+		cout << randomNum;
+
+
+
+		//Use one of these lines below for hashing function
+
+
+
 		//int key = hashFunc1(line, tableSize);
-		int key = hashFunc3(line, tableSize);
+		int key = hashFunc2(line, tableSize, randomNum);
 
-		frequencyTable[key]++;
-		if (hashTable[key] == "")
-		{ //insert into table if no collision
 
+
+
+
+
+
+		frequencyTable[key] += 1;
+
+		if (hashTable[key] == "") //if space is not occupied
+		{
 			hashTable[key] = line;
 		}
-		else
+		else //there is a collision
 		{
-
-			//there is a collision
-			//we must probe
-			//numCollisions++;
 			cout << "Collision Detected! PROBING.." << endl;
 			probe(hashTable, tableSize, key, line, frequencyTable);
 		}
@@ -77,8 +103,8 @@ int main()
 
 	numCollisions = getCollision(frequencyTable, tableSize);
 
-	double rate;
-	printHashTable(hashTable, tableSize);
+	//uncomment this to print the hash table
+		printHashTable(hashTable, tableSize);
 	printFreq(frequencyTable, tableSize);
 	cout << "\n\nSUMMARY\n";
 	cout << "Number of collisions: " << numCollisions << endl;
@@ -90,14 +116,13 @@ int main()
 	return 0;
 }
 
-//In this hash function we are adding up all the ascii values in the first
-//and last name to get a sum, then modulo with the table size to get our indexing key
+//Hash Function #1
 unsigned int hashFunc1(const string &name, int tableSize)
 {
 
 	unsigned int key = 0;
 	unsigned int asciiValue;
-	unsigned int sum;
+	unsigned int sum = 0;
 
 	for (int i = 0; i < name.length(); i++)
 	{
@@ -111,17 +136,17 @@ unsigned int hashFunc1(const string &name, int tableSize)
 
 	key = sum % tableSize;
 	cout << "Indexing key: " << key << endl
-		 << endl;
+		<< endl;
 
 	return key;
 }
 
-unsigned int hashFunc2(const string &name, int tableSize)
+
+//Hash function #2 Improved version
+unsigned int hashFunc2(const string &name, int tableSize, int r)
 {
 
 	unsigned int key = 0;
-	//unsigned int asciiValue =0;
-	//unsigned int sum;
 	int index = 1;
 
 	unsigned int hash = 0;
@@ -135,15 +160,12 @@ unsigned int hashFunc2(const string &name, int tableSize)
 	}
 
 	key = hash % tableSize;
-	cout << "hash" << hash << endl;
-	cout << "Indexing key: " << key << endl
-		 << endl;
 
 	return key;
 }
 
 
-
+//Returns the number of collisions based on the frequency table
 int getCollision(int table[], int tableSize)
 {
 
@@ -161,6 +183,7 @@ int getCollision(int table[], int tableSize)
 	return sum;
 }
 
+//get the next closest prime number
 int next_pr(int num)
 {
 	int c;
@@ -195,6 +218,7 @@ int is_prime(int num)
 	return 1;
 }
 
+//Prints the hash table
 void printHashTable(string HashTable[], int tableSize)
 {
 
@@ -206,18 +230,17 @@ void printHashTable(string HashTable[], int tableSize)
 	}
 }
 
+//Prints the frequency table
 void printFreq(int table[], int tableSize)
 {
 	cout << "***Printing frequency Table:\n";
 	for (int i = 0; i < tableSize; i++)
 	{
 
-		if (table[i] != 0)
+		if (table[i] > 0)
 		{
-
-			cout << i << "   :   ";
-
-			cout << table[i] << endl;
+			
+			cout << setw(10) << i << "   :   " << table[i] << endl;
 		}
 	}
 }
@@ -235,10 +258,10 @@ bool probe(string hashTable[], int tableSize, int key, string line, int frequenc
 	while (inserted == false)
 	{
 
-		frequencyTable[key]++;
+		
 		if (hashTable[index] != "")
 		{ //there is a collision
-			
+
 			index = (index + i ^ 2) % tableSize;
 
 		}
@@ -249,12 +272,12 @@ bool probe(string hashTable[], int tableSize, int key, string line, int frequenc
 			hashTable[index] = line;
 			cout << line << endl;
 			cout << "New Indexing key: " << index << endl
-				 << endl;
+				<< endl;
 
 			return true;
 		}
+		frequencyTable[index] += 1;
 
 		i++;
 	}
 }
-
